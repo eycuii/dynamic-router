@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ey.dynamicrouter.dao.IRouterConfigDao">
+
+    <resultMap id="BaseResultMap" type="routerConfig">
+        <result column="ID" property="id" javaType="int" jdbcType="NUMERIC"/>
+        <result column="REQUEST_CODE" property="requestCode" javaType="String" jdbcType="NVARCHAR"/>
+        <result column="REDIRECT_URL" property="redirectUrl" javaType="String" jdbcType="NVARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        T.ID, T.REQUEST_CODE, T.REDIRECT_URL
+    </sql>
+
+    <select id="getByRequestCode" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM T_ROUTER_CONFIG T
+        WHERE T.REQUEST_CODE = #{requestCode,jdbcType=NVARCHAR}
+    </select>
+</mapper>
