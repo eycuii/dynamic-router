@@ -1,4 +1,4 @@
-package com.ey.dynamicrouter.filter;
+package com.ey.dynamicrouter.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;

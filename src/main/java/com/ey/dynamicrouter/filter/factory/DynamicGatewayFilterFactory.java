@@ -1,16 +1,18 @@
-package com.ey.dynamicrouter.filter;
+package com.ey.dynamicrouter.filter.factory;
 
 
 import com.ey.dynamicrouter.entities.RouterConfig;
 import com.ey.dynamicrouter.service.IRouterConfigService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URL;
@@ -43,25 +45,18 @@ public class DynamicGatewayFilterFactory
     @Override
     protected Optional<URI> determineRequestUri(ServerWebExchange exchange,
                                                 Config config) {
-        String redirectUrl;
+        URI redirectUri;
         try {
-            redirectUrl = getRedirectUrl(exchange, config);
+            redirectUri = getRedirectUri(exchange, config);
         } catch (Exception e) {
             e.printStackTrace();
-            redirectUrl = getErrorUrl(e);
+            redirectUri = getErrorUri(e);
         }
-        System.out.println("redirectUrl::" + redirectUrl);
-        return Optional.ofNullable(redirectUrl).map((url) -> {
-            try {
-                return (new URL(url)).toURI();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        });
+        System.out.println("redirectUrl::" + redirectUri);
+        return Optional.of(redirectUri);
     }
 
-    private String getRedirectUrl(ServerWebExchange exchange, Config config) throws Exception {
+    private URI getRedirectUri(ServerWebExchange exchange, Config config) throws Exception {
         ServerHttpRequest req = exchange.getRequest();
         MultiValueMap<String, String> params = req.getQueryParams();
 
@@ -74,7 +69,7 @@ public class DynamicGatewayFilterFactory
             throw new RuntimeException("路由配置信息不存在");
         }
 
-        return getRedirectUrl(req, config, routerConfig);
+        return getRedirectUri(req, config, routerConfig);
     }
 
     private String getParam(MultiValueMap<String, String> params, String name) {
@@ -85,22 +80,28 @@ public class DynamicGatewayFilterFactory
         return list.get(0);
     }
 
-    private String getRedirectUrl(ServerHttpRequest req, Config config, RouterConfig routerConfig) {
-        URI uri = req.getURI();
-        String path = uri.getRawPath();
-        String redirectPath = path.replaceFirst(config.getRegex(), "");
-        return routerConfig.getRedirectUrl() + redirectPath + "?" + uri.getRawQuery();
+    private URI getRedirectUri(ServerHttpRequest request, Config config, RouterConfig routerConfig) throws Exception {
+        URI redirectUri = (new URL(routerConfig.getRedirectUrl())).toURI();
+        URI requestUri = request.getURI();
+        String requestPath = requestUri.getRawPath().replaceFirst(config.getRegex(), "");
+        boolean encoded = ServerWebExchangeUtils.containsEncodedParts(redirectUri);
+        return UriComponentsBuilder.fromUri(redirectUri)
+                .path(requestPath)
+                .query(requestUri.getRawQuery())
+                .build(encoded)
+                .toUri();
     }
 
-    private String getErrorUrl(Exception e) {
-        String url = "";
+    private URI getErrorUri(Exception e) {
+        URI uri = null;
         try {
             String message = URLEncoder.encode(e.getMessage(), "utf-8");
-            url = String.format(errorUrl, port, message);
+            String url = String.format(errorUrl, port, message);
+            uri = (new URL(url)).toURI();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return url;
+        return uri;
     }
 
     public static class Config {
