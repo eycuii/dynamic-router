@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.DispatcherHandler;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 @Component
 public class OrderedHystrixGatewayFilterFactory
@@ -26,14 +25,10 @@ public class OrderedHystrixGatewayFilterFactory
         return hystrixGatewayFilterFactory.shortcutFieldOrder();
     }
 
-    public GatewayFilter apply(String routeId, Consumer<HystrixGatewayFilterFactory.Config> consumer) {
-        return hystrixGatewayFilterFactory.apply(routeId, consumer);
-    }
-
     @Override
     public GatewayFilter apply(HystrixGatewayFilterFactory.Config config) {
         return new OrderedGatewayFilter(
-                hystrixGatewayFilterFactory.apply(config), Integer.MAX_VALUE);
+                hystrixGatewayFilterFactory.apply(config), OrderedGatewayFilter.LOWEST_PRECEDENCE - 1);
     }
 }
 
