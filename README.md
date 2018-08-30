@@ -6,7 +6,7 @@
 使用的过滤器：
 
 - DynamicGatewayFilterFactory：根据数据库里的配置信息做动态路由
-- OrderedHystrixGatewayFilterFactory：引入Hystrix，并把该过滤器顺序放到最后。
+- OrderedHystrixGatewayFilterFactory：引入Hystrix，并把该过滤器顺序放到倒数第二。
 
 ​        
 sql：
