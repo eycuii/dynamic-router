@@ -26,3 +26,5 @@ spring:
           args:
             name: fallbackUri
             fallbackUri: forward:/index/hystrixFallback
+
+hystrix.command.default.circuitBreaker.enabled: false
